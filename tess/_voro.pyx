@@ -59,6 +59,10 @@ cdef extern from "voro++.hh" namespace "voro":
         void pos(double &x, double &y, double &z)
         void pos(int &pid, double &x, double &y, double &z, double &r)
         
+    cdef cppclass wall:
+        wall()
+        cbool point_inside(double x, double y, double z)
+        cbool cut_cell(voronoicell_neighbor &c, double x, double y, double z)
 
 cdef class Cell:
     """A basic voronoi cell, usually created by :class:`Container`.
@@ -311,3 +315,19 @@ cdef class ContainerPoly:
             (self.thisptr.ax, self.thisptr.ay, self.thisptr.az),
             (self.thisptr.bx, self.thisptr.by, self.thisptr.bz),
         )
+cdef class Wall:
+    cdef wall *thisptr
+    
+    def __cinit__(self):
+        self.thisptr = new wall()
+        
+    def __dealloc__(self):
+        del self.thisptr
+    
+    def point_inside(self, x, y, z):
+        return self.thisptr.point_inside(x,y,z)
+    
+    def cut_cell(self, c, x, y, z):
+        cell = dereference(c.thisptr)
+        return self.thisptr.cut_cell(cell,  x, y, z)
+        
